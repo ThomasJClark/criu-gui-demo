@@ -15,11 +15,15 @@ var tree = d3.layout.tree()
                .value(function(d) { return d.name; });
 
 function redraw(data) {
+  console.log("redrawing...");
+
   var nodeData = tree.nodes(data);
   var linkData = tree.links(nodeData);
 
   var links = g.selectAll("path.link").data(linkData);
-  var nodes = g.selectAll("g.node").data(nodeData);
+  var nodes = g.selectAll("circle.node").data(nodeData);
+
+  links.attr("d", diagonal);
 
   links.enter()
       .append("path")
@@ -30,10 +34,12 @@ function redraw(data) {
 
   links.exit().remove();
 
+  nodes.attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; });
+
   nodes.enter()
-      .append("g")
-      .attr("class", "node")
       .append("circle")
+      .attr("class", "node")
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
       .attr("r", 8.0)
@@ -60,10 +66,16 @@ function redraw(data) {
   nodes.exit().remove();
 }
 
-d3.json("/procs", function(error, data) {
-  if (error) {
-    console.warn(error);
-  } else {
-    redraw(data);
-  }
-});
+function reload() {
+  d3.json("/procs", function(error, data) {
+    if (error) {
+      console.warn(error);
+    } else {
+      redraw(data);
+    }
+
+    window.setTimeout(reload, 500);
+  });
+}
+
+reload();
