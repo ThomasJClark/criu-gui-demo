@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<html lang="en" style="height: 100%">
+  <head>
+    <meta charset="utf-8" />
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="https://code.jquery.com/jquery-1.11.2.min.js" charset="utf-8"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+    <link href="http://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+    <style>
+      html, body { height: 100%; margin: 0; padding: 0; }
+      html { padding: 0px 16px; }
+      * { font-family: Montserrat; }
+    </style>
+  </head>
+  <body>
+    <div style="display: table; width: 100%; height: 100%;">
+      <h1>Processes</h1>
+      <hr/>
+
+      <div class="panel panel-default" style="display: table-row;">
+        <div class="panel-body" style="display: table-cell; height: 100%">
+          <svg width="50%" height="100%"></svg>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <table class="table panel-body">
+          <tr>
+            <th width="200px">Name</th>
+            <th width="100px">ID</th>
+            <th>Children</th>
+          </tr>
+          <tr height="100px">
+            <td id="process-name"></td>
+            <td id="process-id"></td>
+            <td id="process-children">Hover over a node to see more information about that process.</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <script src="criugui.js" type="text/javascript" charset="utf-8"></script>
+  </body>
+</html>

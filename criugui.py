@@ -11,7 +11,7 @@ urls = (
 
 class index:
     def GET(self):
-        return open("index.html").read()
+        raise web.seeother("/static/index.html")
 
 if __name__ == "__main__":
     app = web.application(urls, globals())
