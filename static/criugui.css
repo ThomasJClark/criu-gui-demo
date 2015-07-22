@@ -11,16 +11,30 @@ html {
   font-family: Overpass, "Open Sans", Arial, sans-serif;
 }
 
+.node {
+    cursor: grab;
+}
+
 .node circle {
   fill: white;
   stroke: #333333;
   stroke-width: 1px;
-  cursor: grab;
+}
+
+.node text {
+  font-family: "Fira Mono", "Liberation Mono", monospace;
+  font-size: 11px;
 }
 
 .active-node circle {
   stroke: teal;
-  stroke-width: 3px;
+  fill: lightblue;
+  stroke-width: 2px;
+}
+
+.active-node text {
+  fill: teal;
+  font-weight: bold;
 }
 
 path.link {

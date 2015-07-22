@@ -1,4 +1,4 @@
-var group, diagonal, tree;
+var linkGroup, nodeGroup, diagonal, tree;
 
 function setup() {
   d3.select("svg").attr("preserveAspectRatio", "xMidYMid meet").attr(
@@ -7,12 +7,15 @@ function setup() {
   group = d3.select("svg").append("g").attr(
       {"width" : 800, "height" : 500, "transform" : "translate(25, 0)"});
 
+  linkGroup = group.append("g");
+  nodeGroup = group.append("g");
+
   diagonal = d3.svg.diagonal().projection(function(d) { return [ d.y, d.x ]; });
 
   tree = d3.layout.tree()
              .size([ group.attr("height"), group.attr("width") ])
              .children(function(d) { return d.children; })
-             .value(function(d) { return d.name; });
+             .sort(function(a, b) { return d3.ascending(a.name, b.name); });
 }
 
 function redraw(data) {
@@ -20,11 +23,11 @@ function redraw(data) {
    * process on the system, and they're arrange in a tree that shows
    * parent/child processes. */
   var nodeData = tree.nodes(data);
-  var nodes = group.selectAll("g.node").data(nodeData);
+  var nodes = nodeGroup.selectAll("g.node").data(nodeData);
 
   /* Nodes are drawn as an SVG group containing a circle and a text label,
    * which indicates the name of the process.  */
-  nodes.enter()
+  var nodeGroups = nodes.enter()
       .append("g")
       .attr("class", "node")
       .on("mouseover", function(d) {
@@ -49,18 +52,20 @@ function redraw(data) {
         d3.select("#process-children")
             .text("Hover over a node to see more information " +
                   "about that process.");
-      })
-      .append("circle")
-      .attr("r", 4.0);
+      });
 
-  nodes.attr("transform",
-             function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+  nodeGroups.append("circle").attr({r: 4.0});
+  nodeGroups.append("text").attr({x: 10, y: 4});
+
+  nodes.attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+  nodes.each(function () { d3.select(this).select("text").text(); });
+  nodeGroup.selectAll("text").text(function(d) { return d.name; });
 
   nodes.exit().remove();
 
   /* Update the links between the nodes with the latest data. */
   var linkData = tree.links(nodeData);
-  var links = group.selectAll("path.link").data(linkData);
+  var links = linkGroup.selectAll("path.link").data(linkData);
 
   /* Links are drawn as SVG paths using d3's svg.diagonal helper. */
   links.enter().append("path").attr("class", "link");
