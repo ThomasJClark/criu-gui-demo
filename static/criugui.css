@@ -1,0 +1,28 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+html {
+  padding: 0px 16px;
+}
+
+* {
+  font-family: Overpass, "Open Sans", Arial, sans-serif;
+}
+
+circle.node {
+  fill: white;
+  stroke: #333333;
+  stroke-width: 2px;
+  cursor: grab;
+}
+
+circle.node:hover {
+  stroke: teal;
+  stroke-width: 3px;
+}
+
+path.link {
+  fill: none;
+  stroke: #dddddd;
+}

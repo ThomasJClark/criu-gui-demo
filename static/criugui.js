@@ -24,14 +24,7 @@ function redraw(data) {
   var nodes = g.selectAll("circle.node").data(nodeData);
 
   links.attr("d", diagonal);
-
-  links.enter()
-      .append("path")
-      .attr("class", "link")
-      .attr("d", diagonal)
-      .style("fill", "none")
-      .style("stroke", "#dddddd");
-
+  links.enter().append("path").attr("class", "link").attr("d", diagonal);
   links.exit().remove();
 
   nodes.attr("cx", function(d) { return d.x; })
@@ -43,9 +36,7 @@ function redraw(data) {
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
       .attr("r", 8.0)
-      .style("fill", "#333333")
       .on("mouseover", function(d) {
-        d3.select(this).style("fill", "teal");
         nameLabel.text(d.name);
         idLabel.text(d.id);
         if (d.children) {
@@ -56,7 +47,6 @@ function redraw(data) {
         }
       })
       .on("mouseout", function(d) {
-        d3.select(this).style("fill", "#333333");
         nameLabel.text("");
         idLabel.text("");
         childrenLabel.text(
