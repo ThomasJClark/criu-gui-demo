@@ -2,6 +2,7 @@ html, body {
   height: 100%;
   margin: 0;
 }
+
 html {
   padding: 0px 16px;
 }
@@ -10,14 +11,14 @@ html {
   font-family: Overpass, "Open Sans", Arial, sans-serif;
 }
 
-circle.node {
+.node circle {
   fill: white;
   stroke: #333333;
-  stroke-width: 2px;
+  stroke-width: 1px;
   cursor: grab;
 }
 
-circle.node:hover {
+.active-node circle {
   stroke: teal;
   stroke-width: 3px;
 }
