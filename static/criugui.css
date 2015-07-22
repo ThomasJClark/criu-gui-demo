@@ -21,23 +21,31 @@ html {
   stroke-width: 1px;
 }
 
-.node text {
-  font-family: "Fira Mono", "Liberation Mono", monospace;
+.node text.node-label {
+  fill: #000;
+  font-family: "Liberation Mono", monospace;
   font-size: 10px;
 }
 
-.active-node circle {
-  stroke: teal;
-  fill: lightblue;
-  stroke-width: 2px;
-}
-
-.active-node text {
+.active-node text.node-label {
   fill: teal;
   font-weight: bold;
+}
+
+.dragging-node text.node-label {
+  opacity: 0.25;
+  fill: #000;
 }
 
 path.link {
   fill: none;
   stroke: #dddddd;
+}
+
+text.ghost {
+  font-family: "Liberation Mono", monospace;
+  font-size: 10px;
+  fill: teal;
+  font-weight: bold;
+  opacity: 0.75;
 }

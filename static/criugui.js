@@ -1,11 +1,10 @@
-var linkGroup, nodeGroup, diagonal, tree;
+var linkGroup, nodeGroup, diagonal, tree, dragging = false;
+
+var nodeLabelOffset = { x:6, y:3 };
 
 function setup() {
-  d3.select("svg").attr("preserveAspectRatio", "xMidYMid meet").attr(
-      "viewBox", "0 0 1000 500");
-
   group = d3.select("svg").append("g").attr(
-      {"width" : 800, "height" : 500, "transform" : "translate(25, 0)"});
+      {"width" : 800, "height" : 600, "transform" : "translate(25, 0)"});
 
   linkGroup = group.append("g");
   nodeGroup = group.append("g");
@@ -16,6 +15,47 @@ function setup() {
              .size([ group.attr("height"), group.attr("width") ])
              .children(function(d) { return d.children; })
              .sort(function(a, b) { return d3.ascending(a.name, b.name); });
+
+  drag = d3.behavior.drag()
+      .on("dragstart", function(d) {
+        dragging = true;
+
+        this["ghost-x"] = nodeLabelOffset.x;
+        this["ghost-y"] = nodeLabelOffset.y;
+
+        /* When a node is dragged, crated a new "ghost" node with the same text
+         * for the user to drag around. */
+        d3.select(this)
+            .classed("dragging-node", true)
+            .append("text")
+            .text(d.name)
+            .classed("ghost", true)
+            .attr("transform", "translate(" + this["ghost-x"] + "," + this["ghost-y"] + ")");
+      })
+      .on("drag", function(d) {
+        this["ghost-x"] += d3.event.dx;
+        this["ghost-y"] += d3.event.dy;
+
+        /* Move the ghost node as the user drags. */
+        d3.select(this)
+            .select("text.ghost")
+            .attr("transform", "translate(" + this["ghost-x"] + "," + this["ghost-y"] + ")");
+      })
+      .on("dragend", function() {
+        dragging = false;
+
+        d3.select(this).classed({"active-node" : false, "dragging-node" : false});
+
+        /* If the drag was cancelled, move the ghost node back to its original
+         * position and remove it. */
+        d3.select(this).select("text.ghost")
+            .transition()
+            .duration(500)
+            .ease("cubic-out")
+            .attr("transform", "translate(" + nodeLabelOffset.x + "," + nodeLabelOffset.y + ")")
+            .style("opacity", 0)
+            .remove();
+      });
 }
 
 function redraw(data) {
@@ -30,7 +70,10 @@ function redraw(data) {
   var nodeGroups = nodes.enter()
       .append("g")
       .attr("class", "node")
+      .call(drag)
       .on("mouseover", function(d) {
+        if (dragging) return;
+
         d3.select(this).classed("active-node", true);
 
         /* Show more detailed information about this process when it's hovered
@@ -55,11 +98,11 @@ function redraw(data) {
       });
 
   nodeGroups.append("circle").attr({r: 3.0});
-  nodeGroups.append("text").attr({x: 8, y: 3});
+  nodeGroups.append("text").attr(nodeLabelOffset).classed("node-label", true);
 
   nodes.attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
-  nodes.each(function () { d3.select(this).select("text").text(); });
-  nodeGroup.selectAll("text").text(function(d) { return d.name; });
+  nodes.each(function () { d3.select(this).select("text.node-label").text(); });
+  nodeGroup.selectAll("text.node-label").text(function(d) { return d.name; });
 
   nodes.exit().remove();
 
