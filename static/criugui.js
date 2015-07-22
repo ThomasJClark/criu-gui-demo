@@ -54,8 +54,8 @@ function redraw(data) {
                   "about that process.");
       });
 
-  nodeGroups.append("circle").attr({r: 4.0});
-  nodeGroups.append("text").attr({x: 10, y: 4});
+  nodeGroups.append("circle").attr({r: 3.0});
+  nodeGroups.append("text").attr({x: 8, y: 3});
 
   nodes.attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
   nodes.each(function () { d3.select(this).select("text").text(); });

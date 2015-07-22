@@ -23,7 +23,7 @@ html {
 
 .node text {
   font-family: "Fira Mono", "Liberation Mono", monospace;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .active-node circle {
