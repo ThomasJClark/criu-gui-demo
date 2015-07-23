@@ -12,7 +12,7 @@ html {
 }
 
 .node {
-    cursor: grab;
+    cursor: default;
 }
 
 .node circle {
@@ -24,7 +24,7 @@ html {
 .node text.node-label {
   fill: #000;
   font-family: "Liberation Mono", monospace;
-  font-size: 10px;
+  font-size: 10pt;
 }
 
 .active-node text.node-label {
@@ -44,8 +44,9 @@ path.link {
 
 text.ghost {
   font-family: "Liberation Mono", monospace;
-  font-size: 10px;
+  font-size: 10pt;
   fill: teal;
   font-weight: bold;
   opacity: 0.75;
+  cursor: move;
 }
