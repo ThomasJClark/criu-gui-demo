@@ -71,6 +71,7 @@ function redraw(data) {
       .append("g")
       .attr("class", "node")
       .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
+      .style("opacity", 0)
       .call(drag)
       .on("mouseover", function(d) {
         if (dragging) return;
@@ -101,20 +102,42 @@ function redraw(data) {
   nodeGroups.append("circle").attr({r: 3.0});
   nodeGroups.append("text").attr(nodeLabelOffset).classed("node-label", true);
 
-  nodes.transition().duration(400).attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+  nodes
+      .transition()
+      .duration(400)
+      .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
+      .style("opacity", 1);
+
   nodes.each(function () { d3.select(this).select("text.node-label").text(); });
   nodeGroup.selectAll("text.node-label").text(function(d) { return d.name; });
 
-  nodes.exit().remove();
+  nodes.exit()
+      .transition()
+      .duration(400)
+      .style("opacity", 0)
+      .remove();
 
   /* Update the links between the nodes with the latest data. */
   var linkData = tree.links(nodeData);
   var links = linkGroup.selectAll("path.link").data(linkData, function(d) { return d.target.id; });
 
   /* Links are drawn as SVG paths using d3's svg.diagonal helper. */
-  links.enter().append("path").attr("class", "link");
-  links.transition().duration(400).attr("d", diagonal);
-  links.exit().remove();
+  links.enter()
+      .append("path")
+      .attr("class", "link")
+      .style("opacity", 0);
+
+  links
+      .transition()
+      .duration(400)
+      .attr("d", diagonal)
+      .style("opacity", 1);
+
+  links.exit()
+      .transition()
+      .duration(400)
+      .style("opacity", 0)
+      .remove();
 }
 
 function reload() {
