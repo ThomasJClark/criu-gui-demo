@@ -104,7 +104,7 @@ function redraw(data) {
 
   nodes
       .transition()
-      .duration(400)
+      .duration(200)
       .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
       .style("opacity", 1);
 
@@ -113,7 +113,7 @@ function redraw(data) {
 
   nodes.exit()
       .transition()
-      .duration(400)
+      .duration(200)
       .style("opacity", 0)
       .remove();
 
@@ -129,19 +129,19 @@ function redraw(data) {
 
   links
       .transition()
-      .duration(400)
+      .duration(200)
       .attr("d", diagonal)
       .style("opacity", 1);
 
   links.exit()
       .transition()
-      .duration(400)
+      .duration(200)
       .style("opacity", 0)
       .remove();
 }
 
 function reload() {
-  /* Reload the process data and redraw the tree every 500 milliseconds. */
+  /* Reload the process data and redraw the tree every 200 milliseconds. */
   d3.json("/procs", function(error, data) {
     if (error) {
       console.warn(error);
@@ -149,7 +149,7 @@ function reload() {
       redraw(data);
     }
 
-    window.setTimeout(reload, 500);
+    window.setTimeout(reload, 200);
   });
 }
 
