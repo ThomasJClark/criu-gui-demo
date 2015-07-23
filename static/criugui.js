@@ -56,6 +56,13 @@ function setup() {
             .style("opacity", 0)
             .remove();
       });
+
+
+  /* Wait for server-sent events containing the process data and redraw the
+   * tree whenever new data arrives. */
+  new EventSource("/procs").addEventListener("procs", function(e) {
+    redraw(JSON.parse(e.data));
+  });
 }
 
 function redraw(data) {
@@ -140,18 +147,4 @@ function redraw(data) {
       .remove();
 }
 
-function reload() {
-  /* Reload the process data and redraw the tree every 200 milliseconds. */
-  d3.json("/procs", function(error, data) {
-    if (error) {
-      console.warn(error);
-    } else {
-      redraw(data);
-    }
-
-    window.setTimeout(reload, 200);
-  });
-}
-
 setup();
-reload();

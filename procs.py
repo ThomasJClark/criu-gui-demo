@@ -1,5 +1,7 @@
 import psutil
 import json
+import web
+import time
 
 
 class Procs:
@@ -11,29 +13,45 @@ class Procs:
 
     def GET(self):
         """
-            Respond to an HTTP GET request with a JSON string.
+            Respond to an HTTP GET request with a stream of events containing
+            JSON strings.
         """
 
-        flatprocs = []
-        root = {}
+        web.header("Content-Type", "text/event-stream")
+        web.header("Cache-Control", "no-cache")
 
-        for p in psutil.process_iter():
-            proc = {
-                # name and ppid are either functions or variables in different
-                # versions of psutil.
-                "name": p.name() if callable(p.name) else p.name,
-                "id": p.pid,
-                "parent": p.ppid() if callable(p.ppid) else p.ppid,
-                "children": [],
-            }
+        oldroot = {}
 
-            if p.pid == 1:
-                root = proc
-            else:
-                flatprocs.append(proc)
+        while True:
+            flatprocs = []
+            root = {}
 
-        self.unflatten(flatprocs, root)
-        return json.dumps(root, separators=",:")
+            for p in psutil.process_iter():
+                proc = {
+                    # name and ppid are either functions or variables in
+                    # different versions of psutil.
+                    "name": p.name() if callable(p.name) else p.name,
+                    "id": p.pid,
+                    "parent": p.ppid() if callable(p.ppid) else p.ppid,
+                    "children": [],
+                }
+
+                if p.pid == 1:
+                    root = proc
+                else:
+                    flatprocs.append(proc)
+
+            self.unflatten(flatprocs, root)
+
+            if root != oldroot:
+                yield "event: procs\n"
+                yield "data: " + json.dumps(root, separators=",:") + "\n"
+                yield "\n"
+
+                oldroot = root
+
+            # Poll at 100ms intervals
+            time.sleep(0.1)
 
     def unflatten(self, flatprocs, proc):
         """
