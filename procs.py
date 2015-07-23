@@ -1,4 +1,4 @@
-import procfs.procfs as procfs
+import psutil
 import json
 
 
@@ -14,23 +14,20 @@ class Procs:
             Respond to an HTTP GET request with a JSON string.
         """
 
-        pidstats = procfs.pidstats()
         flatprocs = []
         root = {}
 
-        print len(pidstats.processes), "processes"
-
-        for pid in pidstats.processes:
-            stat = pidstats.processes[pid]["stat"]
-
+        for p in psutil.process_iter():
             proc = {
-                "name": stat["comm"],
-                "id": stat["pid"],
-                "parent": stat["ppid"],
+                # name and ppid are either functions or variables in different
+                # versions of psutil.
+                "name": p.name() if callable(p.name) else p.name,
+                "id": p.pid,
+                "parent": p.ppid() if callable(p.ppid) else p.ppid,
                 "children": [],
             }
 
-            if stat["pid"] == 1:
+            if p.pid == 1:
                 root = proc
             else:
                 flatprocs.append(proc)
@@ -40,13 +37,22 @@ class Procs:
 
     def unflatten(self, flatprocs, proc):
         """
-            Utility to convert a flat list of processes with reference to their
-            parents' PIDs into a tree.
+            Utility to convert a flat list of processes with references to
+            their parents' PIDs into a tree.
         """
 
-        del proc["parent"]
-        for proc2 in flatprocs:
-            if proc2["parent"] == proc["id"]:
-                proc["children"].append(proc2)
-                flatprocs.remove(proc2)
-                self.unflatten(flatprocs, proc2)
+        remainder = []
+
+        for childProc in flatprocs:
+            if "parent" in childProc and childProc["parent"] == proc["id"]:
+                proc["children"].append(childProc)
+            else:
+                remainder.append(childProc)
+
+        for childProc in proc["children"]:
+            if not remainder:
+                break
+
+            remainder = self.unflatten(remainder, childProc)
+
+        return remainder
