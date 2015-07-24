@@ -2,10 +2,12 @@
 
 import web
 import procs
+import dump
 
 urls = (
     "/", "index",
-    "/procs", "procs.Procs"
+    "/procs", "procs.Procs",
+    "/dump", "dump.Dump",
 )
 
 
