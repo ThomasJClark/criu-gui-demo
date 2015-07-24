@@ -40,21 +40,40 @@ function setup() {
         d3.select(this)
             .select("text.ghost")
             .attr("transform", "translate(" + this["ghost-x"] + "," + this["ghost-y"] + ")");
+
+        /* If dragging over a migration target, highlight that target to show
+         * that it can be dropped onto. */
+        var target = getMigrationTarget(d3.mouse(d3.select("html").node()));
+        d3.selectAll(".migration-target").classed("migration-target-active", false);
+        target.classed("migration-target-active", true);
       })
       .on("dragend", function() {
         dragging = false;
 
-        d3.select(this).classed({"active-node" : false, "dragging-node" : false});
+        var target = getMigrationTarget(d3.mouse(d3.select("html").node()));
+        if (target.node()) {
+          /* If it was dropped onto a migration target, perform the migration.
+           * (TODO) */
+          target.classed("migration-target-active", false);
+          d3.select(this).select("text.ghost")
+              .transition()
+              .duration(1000)
+              .ease("cubic-out")
+              .style("opacity", 0)
+              .remove();
+        } else {
+          /* If the drag was cancelled, move the ghost node back to its original
+           * position and remove it. */
+          d3.select(this).select("text.ghost")
+              .transition()
+              .duration(500)
+              .ease("cubic-out")
+              .attr("transform", "translate(" + nodeLabelOffset.x + "," + nodeLabelOffset.y + ")")
+              .style("opacity", 0)
+              .remove();
 
-        /* If the drag was cancelled, move the ghost node back to its original
-         * position and remove it. */
-        d3.select(this).select("text.ghost")
-            .transition()
-            .duration(500)
-            .ease("cubic-out")
-            .attr("transform", "translate(" + nodeLabelOffset.x + "," + nodeLabelOffset.y + ")")
-            .style("opacity", 0)
-            .remove();
+          d3.select(this).classed({"active-node" : false, "dragging-node" : false});
+        }
       });
 
 
@@ -64,6 +83,24 @@ function setup() {
     redraw(JSON.parse(e.data));
   });
 }
+
+
+/* Returns a d3.js selection of the item representing the migration target
+ * below the mouse position, if the mouse is indeed over a migration target. */
+function getMigrationTarget(mouse) {
+  var target;
+
+  d3.selectAll(".migration-target").each(function() {
+    var bbox = this.getBoundingClientRect();
+    if (mouse[0] >= bbox.left && mouse[0] <= bbox.right &&
+        mouse[1] >= bbox.top && mouse[1] <= bbox.bottom) {
+      target = this;
+    }
+  });
+
+  return d3.select(target);
+}
+
 
 function redraw(data) {
   /* Update the nodes with the latest data. A node is created for every
@@ -98,12 +135,6 @@ function redraw(data) {
       })
       .on("mouseout", function(d) {
         d3.select(this).classed("active-node", false);
-
-        d3.select("#process-name").text("");
-        d3.select("#process-id").text("");
-        d3.select("#process-children")
-            .text("Hover over a node to see more information " +
-                  "about that process.");
       });
 
   nodeGroups.append("circle").attr({r: 3.0});
