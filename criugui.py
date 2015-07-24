@@ -2,12 +2,13 @@
 
 import web
 import procs
-import dump
+import dumprestore
 
 urls = (
     "/", "index",
     "/procs", "procs.Procs",
-    "/dump", "dump.Dump",
+    "/dump", "dumprestore.Dump",
+    "/restore", "dumprestore.Restore",
 )
 
 
