@@ -9,7 +9,7 @@ var pstrees = d3.select("#pstree-container").selectAll("div").data(targetData);
 var enter = pstrees.enter().append("div")
     .classed("col-md-6", true)
     .append("div")
-    .classed({"panel" : true, "panel-default" : true});
+    .classed({"panel" : true, "panel-default" : true, "pstree" : true});
 
 enter.append("div")
     .classed("panel-heading", true)

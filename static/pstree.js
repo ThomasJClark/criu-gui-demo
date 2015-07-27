@@ -29,40 +29,81 @@ function PSTree(svg) {
         dragging = true;
         d3.event.sourceEvent.stopPropagation();
 
-        this["ghost-x"] = nodeLabelOffset.x;
-        this["ghost-y"] = nodeLabelOffset.y;
+        this["origin-x"] = d3.event.sourceEvent.pageX;
+        this["origin-y"] = d3.event.sourceEvent.pageY;
+        this["ghost-x"] = d3.event.sourceEvent.pageX;
+        this["ghost-y"] = d3.event.sourceEvent.pageY;
 
         /* When a node is dragged, crated a new "ghost" node with the same text
          * for the user to drag around. */
-        d3.select(this)
-            .classed("dragging-node", true)
-            .append("text")
-            .text(d.id)
+        d3.select("body")
+            .append("div")
+            .text(d.name + " (" + d.id + ")")
             .classed("ghost", true)
-            .attr("transform", "translate(" + this["ghost-x"] + "," + this["ghost-y"] + ")");
+            .style({
+                "opacity" : 0,
+                "position" : "absolute",
+                "left" : this["ghost-x"] + "px",
+                "top" : this["ghost-y"] + "px",
+                "pointer-events": "none",
+            })
+            .transition()
+            .duration(250)
+            .style("opacity", 1.0);
+
+        d3.select(this).classed("dragging-node", true);
       })
       .on("drag", function(d) {
         this["ghost-x"] += d3.event.dx;
         this["ghost-y"] += d3.event.dy;
 
         /* Move the ghost node as the user drags. */
-        d3.select(this)
-            .select("text.ghost")
-            .attr("transform", "translate(" + this["ghost-x"] + "," + this["ghost-y"] + ")");
+        d3.select(".ghost").style({
+            left: this["ghost-x"] + "px",
+            top: this["ghost-y"] + "px"
+        });
+
+        /* Show a dragging cursor if we're dragging over another process tree,
+         * or a "not allowed" cursor for anything else.  Processes can be
+         * dragged onto process trees. */
+        if (d3.select(".pstree:hover").node()) {
+          d3.select("body").style("cursor", "move");
+        } else {
+          d3.select("body").style("cursor", "not-allowed");
+        }
       })
       .on("dragend", function() {
         dragging = false;
 
-        /* If the drag was cancelled, move the ghost node back to its original
-         * position and remove it. */
-        d3.select(this).select("text.ghost")
-            .transition()
-            .duration(500)
-            .ease("cubic-out")
-            .attr("transform", "translate(" + nodeLabelOffset.x + "," + nodeLabelOffset.y + ")")
-            .style("opacity", 0)
-            .remove();
+        var target = d3.select(".pstree:hover").node();
 
+        if (target) {
+          /* If the node was dragged onto a process tree, migrate the node to
+           * that machine. (TODO) */
+          d3.select(".ghost")
+              .style("transform", "scale(1.0)")
+              .transition()
+              .duration(250)
+              .ease("cubic-out")
+              .style("opacity", 0)
+              .style("transform", "scale(0.75)")
+              .remove();
+        } else {
+          /* If the drag was cancelled, move the ghost node back to its
+           * original position and remove it. */
+          d3.select(".ghost")
+              .transition()
+              .duration(500)
+              .ease("cubic-out")
+              .style({
+                  "left" : this["origin-x"] + "px",
+                  "top" : this["origin-y"] + "px",
+                  "opacity" : 0,
+              })
+              .remove();
+        }
+
+        d3.select("body").style("cursor", undefined);
         d3.select(this).classed({"active-node" : false, "dragging-node" : false});
       });
 }

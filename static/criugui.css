@@ -41,13 +41,12 @@ path.link {
   stroke: #eeeeee;
 }
 
-text.ghost {
-  font-family: "Liberation Mono", monospace;
+.ghost {
+  border: solid 1px #ddd;
+  background-color: rgba(0, 0, 0, 0.04);
+  border-radius: 2px;
+  padding: 1em;
   font-size: 10pt;
-  fill: teal;
-  font-weight: bold;
-  opacity: 0.75;
-  cursor: move;
 }
 
 .migration-target-active {
