@@ -1,23 +1,33 @@
 var nodeLabelOffset = { x:6, y:3 };
-var diagonal = d3.svg.diagonal().projection(function(d) { return [ d.y, d.x ]; });
+var diagonal = d3.svg.diagonal().projection(function(d) { return [ d.x, d.y ]; });
+var dragging = false;
+var tree = d3.layout.tree()
+    .nodeSize([64, 64])
+    .children(function(d) { return d.children; })
+    .sort(function(a, b) { return d3.ascending(a.name, b.name); });
 
 /* The PSTree class lays out a set of SVG selements to show a tree of processes
  * on a machine, similar to the pstree command.
  */
-function PSTree(group) {
-  this.dragging = false;
+function PSTree(svg) {
+  this.group = svg.append("g");
+  this.linkGroup = this.group.append("g");
+  this.nodeGroup = this.group.append("g");
 
-  this.linkGroup = group.append("g");
-  this.nodeGroup = group.append("g");
+  /* Allow the user to pan the SVG and view processes that are currently
+   * off-screen. */
+  var zoom = d3.behavior.zoom()
+      .scaleExtent([1, 1])
+      .on("zoom", function() {
+          this.group.attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")");
+      }.bind(this));
 
-  this.tree = d3.layout.tree()
-      .size([group.attr("height"), group.attr("width")])
-      .children(function(d) { return d.children; })
-      .sort(function(a, b) { return d3.ascending(a.name, b.name); });
+  svg.call(zoom);
 
   this.drag = d3.behavior.drag()
       .on("dragstart", function(d) {
-        this.dragging = true;
+        dragging = true;
+        d3.event.sourceEvent.stopPropagation();
 
         this["ghost-x"] = nodeLabelOffset.x;
         this["ghost-y"] = nodeLabelOffset.y;
@@ -27,7 +37,7 @@ function PSTree(group) {
         d3.select(this)
             .classed("dragging-node", true)
             .append("text")
-            .text(d.name)
+            .text(d.id)
             .classed("ghost", true)
             .attr("transform", "translate(" + this["ghost-x"] + "," + this["ghost-y"] + ")");
       })
@@ -41,7 +51,7 @@ function PSTree(group) {
             .attr("transform", "translate(" + this["ghost-x"] + "," + this["ghost-y"] + ")");
       })
       .on("dragend", function() {
-        this.dragging = false;
+        dragging = false;
 
         /* If the drag was cancelled, move the ghost node back to its original
          * position and remove it. */
@@ -74,7 +84,7 @@ PSTree.prototype.redraw = function(e) {
   /* Update the nodes with the latest data. A node is created for every
    * process on the system, and they're arrange in a tree that shows
    * parent/child processes. */
-  var nodeData = this.tree.nodes(data);
+  var nodeData = tree.nodes(data);
   var nodes = this.nodeGroup.selectAll("g.node").data(nodeData, function(d) { return d.id; });
 
   /* Nodes are drawn as an SVG group containing a circle and a text label,
@@ -82,13 +92,15 @@ PSTree.prototype.redraw = function(e) {
   var nodeGroups = nodes.enter()
       .append("g")
       .attr("class", "node")
-      .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
+      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
       .style("opacity", 0)
       .call(this.drag)
       .on("mouseover", function(d) {
-        if (this.dragging) return;
+        if (dragging) return;
 
+        /* Highlight the text. */
         d3.select(this).classed("active-node", true);
+        d3.select(this).select("text.node-label").text(function(d) { return d.id; });
 
         /* Show more detailed information about this process when it's hovered
          * over. */
@@ -102,20 +114,24 @@ PSTree.prototype.redraw = function(e) {
         }
       })
       .on("mouseout", function(d) {
+        /* Change the text back to normal. */
         d3.select(this).classed("active-node", false);
+        d3.select(this).select("text.node-label").text(function(d) { return d.id; });
       });
 
   nodeGroups.append("circle").attr({r: 3.0});
-  nodeGroups.append("text").attr(nodeLabelOffset).classed("node-label", true);
+  nodeGroups.append("text")
+      .attr(nodeLabelOffset)
+      .classed("node-label", true);
 
   nodes
       .transition()
       .duration(200)
-      .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
+      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
       .style("opacity", 1);
 
   nodes.each(function () { d3.select(this).select("text.node-label").text(); });
-  this.nodeGroup.selectAll("text.node-label").text(function(d) { return d.name; });
+  this.nodeGroup.selectAll("text.node-label").text(function(d) { return d.id; });
 
   nodes.exit()
       .transition()
@@ -124,7 +140,7 @@ PSTree.prototype.redraw = function(e) {
       .remove();
 
   /* Update the links between the nodes with the latest data. */
-  var linkData = this.tree.links(nodeData);
+  var linkData = tree.links(nodeData);
   var links = this.linkGroup.selectAll("path.link").data(linkData, function(d) { return d.target.id; });
 
   /* Links are drawn as SVG paths using d3's svg.diagonal helper. */
