@@ -75,9 +75,9 @@ function PSTree(svg) {
       .on("dragend", function() {
         dragging = false;
 
-        var target = d3.select(".pstree:hover").node();
+        var target = d3.select(".pstree:hover");
 
-        if (target) {
+        if (target.node()) {
           /* If the node was dragged onto a process tree, migrate the node to
            * that machine. (TODO) */
           d3.select(".ghost")
@@ -88,6 +88,8 @@ function PSTree(svg) {
               .style("opacity", 0)
               .style("transform", "scale(0.75)")
               .remove();
+
+          migrate(d3.select(this).datum(), svg.datum(), target.datum());
         } else {
           /* If the drag was cancelled, move the ghost node back to its
            * original position and remove it. */
@@ -111,8 +113,9 @@ function PSTree(svg) {
 
 /* Wait for server-sent events containing the process data and redraw the tree
  * whenever new data arrives. */
-PSTree.prototype.listen = function(url) {
-  new EventSource(url).addEventListener("procs", PSTree.prototype.redraw.bind(this));
+PSTree.prototype.listen = function(address) {
+  new EventSource(address + "/procs")
+      .addEventListener("procs", PSTree.prototype.redraw.bind(this));
 };
 
 

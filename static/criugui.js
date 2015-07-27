@@ -1,6 +1,6 @@
 var targetData = [
-    { name: "localhost", url: "/procs" },
-    { name: "nuc", url: "http://10.18.17.157:8080/procs" },
+    { name: "localhost", address: "" },
+    { name: "nuc", address: "http://10.18.17.157:8080" },
 ];
 
 /* Show two trees - one for localhost and one for 10.18.17.157 (the NUC).
@@ -19,5 +19,5 @@ enter.append("svg")
     .classed("panel-body", true)
     .attr({ width : "100%", height : "500" })
     .each(function(d) {
-      new PSTree(d3.select(this)).listen(d.url);
+      new PSTree(d3.select(this)).listen(d.address);
     });

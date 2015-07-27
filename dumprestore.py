@@ -42,6 +42,7 @@ class Dump(_DRBase):
         """
 
         web.header("Content-Type", "application/json")
+        web.header("Access-Control-Allow-Origin", "*")
         pid = web.input().get("pid")
 
         if not pid or not pid.isnumeric():
@@ -75,6 +76,7 @@ class Restore(_DRBase):
         """
 
         web.header("Content-Type", "application/json")
+        web.header("Access-Control-Allow-Origin", "*")
 
         if "dir" not in web.input():
             result = {"succeeded": False, "why": "No directory specified"}
