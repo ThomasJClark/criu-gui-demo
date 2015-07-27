@@ -19,6 +19,8 @@ class Procs:
 
         web.header("Content-Type", "text/event-stream")
         web.header("Cache-Control", "no-cache")
+        web.header("Access-Control-Allow-Origin", "*")
+        web.header("Access-Control-Expose-Headers", "*")
 
         oldroot = {}
 
