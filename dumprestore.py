@@ -64,7 +64,11 @@ class Dump(_DRBase):
         req = criu.criu_req()
         req.type = criu.DUMP
         req.opts.pid = int(pid)
-        req.opts.shell_job = False
+        req.opts.ext_unix_sk = True
+        req.opts.shell_job = True
+        req.opts.tcp_established = True
+        req.opts.evasive_devices = True
+        req.opts.file_locks = True
         req.opts.images_dir_fd = os.open(self.tempdir, os.O_DIRECTORY)
 
         resp = self.transaction(req)

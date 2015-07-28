@@ -11,8 +11,12 @@ html {
   font-family: Overpass, "Open Sans", Arial, sans-serif;
 }
 
+svg {
+  cursor: move;
+}
+
 .node {
-    cursor: default;
+  cursor: pointer;
 }
 
 .node circle {

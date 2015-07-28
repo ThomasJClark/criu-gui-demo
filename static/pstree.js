@@ -66,10 +66,11 @@ function PSTree(svg) {
         /* Show a dragging cursor if we're dragging over another process tree,
          * or a "not allowed" cursor for anything else.  Processes can be
          * dragged onto process trees. */
-        if (d3.select(".pstree:hover").node()) {
-          d3.select("body").style("cursor", "move");
+        var target = d3.select(".pstree:hover");
+        if (target.node() && target.datum() != svg.datum()) {
+          target.selectAll("*").style("cursor", "copy");
         } else {
-          d3.select("body").style("cursor", "not-allowed");
+          d3.selectAll("body").style("cursor", "not-allowed");
         }
       })
       .on("dragend", function() {
@@ -77,9 +78,9 @@ function PSTree(svg) {
 
         var target = d3.select(".pstree:hover");
 
-        if (target.node()) {
-          /* If the node was dragged onto a process tree, migrate the node to
-           * that machine. (TODO) */
+        if (target.node() && target.datum() != svg.datum()) {
+          /* If the node was dragged onto a different process tree, migrate the
+           * node to that machine. */
           d3.select(".ghost")
               .style("transform", "scale(1.0)")
               .transition()
@@ -105,7 +106,7 @@ function PSTree(svg) {
               .remove();
         }
 
-        d3.select("body").style("cursor", undefined);
+        d3.selectAll("body,.pstree *").style("cursor", undefined);
         d3.select(this).classed({"active-node" : false, "dragging-node" : false});
       });
 }
