@@ -8,6 +8,7 @@ from pycriu import rpc as criu
 
 class _DRBase:
     CRIU_ADDR = "/var/run/criu-service.socket"
+    tempdir = ""
 
     def connect(self):
         try:
@@ -24,7 +25,13 @@ class _DRBase:
         resp.ParseFromString(self.sock.recv(1024))
 
         if not resp.success:
-            result = {"succeeded": False, "why": os.strerror(resp.cr_errno)}
+            print resp.cr_errno
+            if resp.cr_errno:
+                why = os.strerror(resp.cr_errno)
+            else:
+                why = "\n".join(line for line in open(self.tempdir + "/criu.log") if line.startswith("Error"))
+
+            result = result = {"succeeded": False, "why": why}
             raise web.internalerror(json.dumps(result, separators=",:"))
 
         return resp
@@ -51,17 +58,17 @@ class Dump(_DRBase):
 
         self.connect()
 
-        tempdir = tempfile.mkdtemp()
+        self.tempdir = tempfile.mkdtemp()
 
         # Send a request to dump the specified process
         req = criu.criu_req()
         req.type = criu.DUMP
         req.opts.pid = int(pid)
         req.opts.shell_job = False
-        req.opts.images_dir_fd = os.open(tempdir, os.O_DIRECTORY)
+        req.opts.images_dir_fd = os.open(self.tempdir, os.O_DIRECTORY)
 
         resp = self.transaction(req)
-        return json.dumps({"succeeded": True, "dir": tempdir}, separators=",:")
+        return json.dumps({"succeeded": True, "dir": self.tempdir}, separators=",:")
 
 
 class Restore(_DRBase):
@@ -82,8 +89,10 @@ class Restore(_DRBase):
             result = {"succeeded": False, "why": "No directory specified"}
             raise web.badrequest(json.dumps(result, separators=",:"))
 
+        self.tempdir = web.input()["dir"]
+
         try:
-            dir_fd = os.open(web.input()["dir"], os.O_DIRECTORY)
+            dir_fd = os.open(self.tempdir, os.O_DIRECTORY)
         except OSError as e:
             result = {"succeeded": False, "why": e.strerror}
             raise web.badrequest(json.dumps(result, separators=",:"))
