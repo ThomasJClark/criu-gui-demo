@@ -11,6 +11,10 @@ html {
   font-family: Overpass, "Open Sans", Arial, sans-serif;
 }
 
+p {
+  font-weight: lighter;
+}
+
 svg {
   cursor: move;
 }
@@ -42,7 +46,8 @@ svg {
 
 path.link {
   fill: none;
-  stroke: #eeeeee;
+  /*stroke: #eeeeee;*/
+  stroke: rgba(0, 0, 0, 0.0667);
 }
 
 .ghost {

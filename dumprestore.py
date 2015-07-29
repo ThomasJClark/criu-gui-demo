@@ -1,8 +1,11 @@
 import web
 import tempfile
 import socket
+import glob
 import os
 import json
+import base64
+import tarfile
 from pycriu import rpc as criu
 
 
@@ -25,11 +28,11 @@ class _DRBase:
         resp.ParseFromString(self.sock.recv(1024))
 
         if not resp.success:
-            print resp.cr_errno
             if resp.cr_errno:
                 why = os.strerror(resp.cr_errno)
             else:
-                why = "\n".join(line for line in open(self.tempdir + "/criu.log") if line.startswith("Error"))
+                why = "criu.log:\n" + "\n".join(line for line in open(
+                    self.tempdir + "/criu.log"))
 
             result = result = {"succeeded": False, "why": why}
             raise web.internalerror(json.dumps(result, separators=",:"))
@@ -64,15 +67,27 @@ class Dump(_DRBase):
         req = criu.criu_req()
         req.type = criu.DUMP
         req.opts.pid = int(pid)
-        req.opts.ext_unix_sk = True
-        req.opts.shell_job = True
-        req.opts.tcp_established = True
-        req.opts.evasive_devices = True
-        req.opts.file_locks = True
+        req.opts.shell_job = False
+        req.opts.manage_cgroups = True
         req.opts.images_dir_fd = os.open(self.tempdir, os.O_DIRECTORY)
 
         resp = self.transaction(req)
-        return json.dumps({"succeeded": True, "dir": self.tempdir}, separators=",:")
+
+        # Create a tar of all of the images and send it base64-encoded back to
+        # the client.  This is okay for a small demo, but obviously a real
+        # application would probably not be this wasteful with resources.
+        temptar = tempfile.mktemp()
+
+        with tarfile.open(temptar, "w:gz") as tar:
+            for f in os.listdir(self.tempdir):
+                tar.add(self.tempdir + "/" + f)
+            tar.close()
+
+        with open(temptar, "r") as tar:
+            data = base64.b64encode(tar.read())
+
+        return json.dumps({"succeeded": True, "data": data,
+                          "dir": self.tempdir}, separators=",:")
 
 
 class Restore(_DRBase):
@@ -89,11 +104,26 @@ class Restore(_DRBase):
         web.header("Content-Type", "application/json")
         web.header("Access-Control-Allow-Origin", "*")
 
-        if "dir" not in web.input():
-            result = {"succeeded": False, "why": "No directory specified"}
+        if "data" not in web.input():
+            result = {"succeeded": False, "why": "No image data provided"}
             raise web.badrequest(json.dumps(result, separators=",:"))
 
+        if "dir" not in web.input():
+            result = {"succeeded": False, "why": "No image directory provided"}
+            raise web.badrequest(json.dumps(result, separators=",:"))
+
+        # Extract the images from the base64-encoding tarball.
+        temptar = tempfile.mktemp()
         self.tempdir = web.input()["dir"]
+
+        print self.tempdir
+
+        with open(temptar, "w") as tar:
+            tar.write(base64.b64decode(web.input()["data"]))
+
+        with tarfile.open(temptar, "r:gz") as tar:
+            tar.list()
+            tar.extractall("/")
 
         try:
             dir_fd = os.open(self.tempdir, os.O_DIRECTORY)
@@ -107,6 +137,7 @@ class Restore(_DRBase):
         req = criu.criu_req()
         req.type = criu.RESTORE
         req.opts.shell_job = False
+        req.opts.manage_cgroups = True
         req.opts.images_dir_fd = dir_fd
 
         resp = self.transaction(req)

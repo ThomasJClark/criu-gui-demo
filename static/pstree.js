@@ -1,8 +1,8 @@
 var nodeLabelOffset = { x:6, y:3 };
-var diagonal = d3.svg.diagonal().projection(function(d) { return [ d.x, d.y ]; });
+var diagonal = d3.svg.diagonal().projection(function(d) { return [ d.y, d.x ]; });
 var dragging = false;
 var tree = d3.layout.tree()
-    .nodeSize([64, 64])
+    .nodeSize([16, 200])
     .children(function(d) { return d.children; })
     .sort(function(a, b) { return d3.ascending(a.name, b.name); });
 
@@ -137,7 +137,7 @@ PSTree.prototype.redraw = function(e) {
   var nodeGroups = nodes.enter()
       .append("g")
       .attr("class", "node")
-      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+      .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
       .style("opacity", 0)
       .call(this.drag)
       .on("mouseover", function(d) {
@@ -145,7 +145,7 @@ PSTree.prototype.redraw = function(e) {
 
         /* Highlight the text. */
         d3.select(this).classed("active-node", true);
-        d3.select(this).select("text.node-label").text(function(d) { return d.id; });
+        d3.select(this).select("text.node-label").text(function(d) { return d.name; });
 
         /* Show more detailed information about this process when it's hovered
          * over. */
@@ -161,7 +161,7 @@ PSTree.prototype.redraw = function(e) {
       .on("mouseout", function(d) {
         /* Change the text back to normal. */
         d3.select(this).classed("active-node", false);
-        d3.select(this).select("text.node-label").text(function(d) { return d.id; });
+        d3.select(this).select("text.node-label").text(function(d) { return d.name; });
       });
 
   nodeGroups.append("circle").attr({r: 3.0});
@@ -172,11 +172,11 @@ PSTree.prototype.redraw = function(e) {
   nodes
       .transition()
       .duration(200)
-      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+      .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
       .style("opacity", 1);
 
   nodes.each(function () { d3.select(this).select("text.node-label").text(); });
-  this.nodeGroup.selectAll("text.node-label").text(function(d) { return d.id; });
+  this.nodeGroup.selectAll("text.node-label").text(function(d) { return d.name; });
 
   nodes.exit()
       .transition()
