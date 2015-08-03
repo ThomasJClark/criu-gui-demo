@@ -5,6 +5,7 @@ A web-based demonstration of process migration with CRIU.
 This demo requires criu, python 2.7, python-webpy, python-psutil, and python-criu to run.
 
 To run the demo:
+
 1. Edit the "targetData" object in static/criugui.js to point to at least two machines (ideally this shouldn't be hardcoded)
 2. Make sure the CRIU RPC service is started with `sudo systemctl start criu.socket`.
 3. Run `./criugui.py` on **both** machines.
