@@ -47,7 +47,8 @@ svg {
 path.link {
   fill: none;
   /*stroke: #eeeeee;*/
-  stroke: rgba(0, 0, 0, 0.0667);
+  stroke: rgba(191, 191, 191, 0.9);
+  stroke-width: 2;
 }
 
 .ghost {
